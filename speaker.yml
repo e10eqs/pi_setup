@@ -1,0 +1,55 @@
+tasks:
+ - name: install pulseaudio
+  apt:
+    name: pulseaudio
+  - name: install pulseaudio bluetooth
+    apt:
+      name: pulseaudio-module-bluetooth
+
+  - name: add user to bluetooth grpu
+  become: true
+  ansible.builtin.shell:
+    cmd: usermod -a -G bluetooth pi
+
+  - name: reboot?
+    ansible.builtin.import_tasks:
+      file: reboot.yml
+
+  - name: configure bluetooth class
+    ansible.builtin.lininfile:
+      path: /etc/bluetooth/main.conf
+      regexp: '^Class'
+      line: 'Class = 0x41C'
+
+  - name: configure bluetooth discovery timeout
+    ansible.builtin.lininfile:
+      path: /etc/bluetooth/main.conf
+      regexp: '^DiscoverableTimeout'
+      line: 'DiscoverableTimeout = 0'
+    
+  - name: start pulseaudio on boot 
+    become: true
+    ansible.builtin.shell: |
+      systemctl restart bluetooth
+      systemctl --user enable pulseaudio
+
+  - name: update bt-agent service
+    ansible.builtin.template:
+      src: files/bt-agent.service
+      dest: /etc/systemd/system/bt-agent.service
+      owner: root
+      group: root
+      mode: '0600'
+
+  - name: install bluz-tools
+    becomne: true
+    ansible.builtin.apt:
+      name: bluez-tools
+
+  - name: configure bluez-tools and change the host name
+    become: true
+    ansible.builtin.shell: |
+      systemctl enable bt-agent
+      systemctl start bt-agent
+      echo '{{ NAME }}' > bluetoothctl
+  

@@ -1,0 +1,11 @@
+- name: Check if reboot required
+  stat:
+    path: /var/run/reboot-required
+  register: reboot_required_file
+
+- name: Reboot if required
+  reboot:
+  when: reboot_required_file.stat.exists == true
+
+# learned about it here
+# https://aaronsaray.com/2021/ansible-reboot-if-required/#:~:text=Now%2C%20all%20you%20have%20to,t%20just%20timeout%20future%20commands).&text=The%20first%20step%20is%20to,%2Freboot%2Drequired%20file%20exists.
