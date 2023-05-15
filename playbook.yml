@@ -1,0 +1,13 @@
+---
+- name: pi_setup
+  hosts: pi_device
+  vars_files: 
+  - hosts.yml
+  tasks: 
+    - name: setup common items
+    ansible.builtin.import_taskss:
+      file: common.yml
+    when: SPEAKER
+    - name: setup bluetooth speaker
+    ansible.builtin.import_tasks:
+      file: blue_speaker.yml
